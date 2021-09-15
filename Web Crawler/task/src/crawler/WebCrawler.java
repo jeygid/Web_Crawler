@@ -1,21 +1,29 @@
 package crawler;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class WebCrawler extends JFrame {
 
-    private JPanel panel;
-    private JTextField urlTextField;
-    private JButton getText;
+    private DefaultTableModel model = new DefaultTableModel();
+    private Map<String, String> linksMap = new HashMap<>();
+
     private JTable table;
     private JScrollPane scrollTable;
+    private JTextField urlTextField;
+    private JButton getText;
     private JLabel title;
     private JLabel titleInfo;
+    private JTextField exportText;
+    private JButton exportButton;
 
     public WebCrawler() {
 
@@ -26,38 +34,41 @@ public class WebCrawler extends JFrame {
         setLocationRelativeTo(null);
         setLayout(null);
 
-        panel = new JPanel();
-        panel.setBounds(0, 0, 800, 700);
-        panel.setLayout(null);
-        add(panel);
-
         urlTextField = new JTextField();
         urlTextField.setBounds(20, 20, 650, 20);
         urlTextField.setName("UrlTextField");
-        panel.add(urlTextField);
+        add(urlTextField);
 
         getText = new JButton();
         getText.setBounds(680, 20, 90, 20);
-        getText.setText("Get text!");
+        getText.setText("PARSE!");
         getText.setName("RunButton");
-        panel.add(getText);
+        add(getText);
         getText.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
 
-                String sourceUrl = urlTextField.getText();
-                String sourceCode = HttpRequest.get(sourceUrl);
-                //table.setText(sourceCode);
+                model.setRowCount(0);
 
-                Pattern pattern = Pattern.compile("<title>[\\S ]+</title>");
-                Matcher matcher = pattern.matcher(sourceCode);
-                String title = "";
-                if (matcher.find()) {
-                    title = matcher.group();
-                    title = title.replaceAll("<[/]?title>", "");
-                    titleInfo.setText(title);
+                String sourceUrl = urlTextField.getText();
+                String sourceCode = HttpRequest.getSourceCode(sourceUrl);
+                String sourceTitle = Parser.getTitle(sourceCode);
+
+                titleInfo.setText(sourceTitle);
+                linksMap = Parser.getHrefs(sourceCode);
+
+                linksMap.put(sourceUrl, sourceTitle);
+
+                for (Map.Entry entry : linksMap.entrySet()) {
+                    String val = (String) entry.getKey();
+                    if (!val.contains("unavailablePage")) {
+                           model.addRow(new String[]{(String) entry.getKey(), (String) entry.getValue()});
+                    }
                 }
+
+                table.setEnabled(true);
+                //resultTable.setModel(model);
 
             }
         });
@@ -66,28 +77,69 @@ public class WebCrawler extends JFrame {
         title.setBounds(20, 50, 30, 10);
         title.setName("Title");
         title.setText("Title:");
-        panel.add(title);
+        add(title);
 
         titleInfo = new JLabel();
-        titleInfo.setBounds(60, 50, 200, 10);
+        titleInfo.setBounds(60, 50, 700, 10);
         titleInfo.setName("TitleLabel");
-        panel.add(titleInfo);
+        add(titleInfo);
 
         table = new JTable();
-        table.setBounds(20, 70, 740, 580);
+        table.setBounds(20, 70, 740, 540);
         table.setName("TitlesTable");
         table.setEnabled(false);
-        //textArea.setLineWrap(true);
+        //table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.setFont(new Font("Verdana", Font.PLAIN, 12));
-        panel.add(table);
+        add(table);
 
         scrollTable = new JScrollPane(table);
-        scrollTable.setBounds(20, 70, 740, 580);
+        scrollTable.setBounds(20, 70, 740, 530);
         scrollTable.setVisible(true);
         scrollTable.setPreferredSize(new Dimension());
         add(scrollTable);
-        panel.add(scrollTable);
+
+        String[] columnNames = {"URL", "Title"};
+        model.setColumnIdentifiers(columnNames);
+        table.setModel(model);
+
+        exportText = new JTextField();
+        exportText.setBounds(20, 610, 650, 20);
+        exportText.setName("ExportUrlTextField");
+        add(exportText);
+
+        exportButton = new JButton();
+        exportButton.setBounds(680, 610, 80, 20);
+        exportButton.setText("Export");
+        exportButton.setName("ExportButton");
+        exportButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+
+                File file = new File(exportText.getText());
+
+
+                try (FileWriter fileWriter = new FileWriter(file)) {
+
+                    for (Map.Entry entry : linksMap.entrySet()) {
+
+                        String val = (String) entry.getKey();
+                        if (!val.contains("unavailablePage")) {
+                            fileWriter.write(entry.getKey() + "\n" + entry.getValue() + "\n");
+                            fileWriter.flush();
+                        }
+                    }
+
+                } catch (IOException e) {
+
+                }
+
+            }
+        });
+
+        add(exportButton);
 
         setVisible(true);
     }
+
 }

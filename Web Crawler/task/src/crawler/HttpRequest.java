@@ -2,37 +2,41 @@ package crawler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 
 public class HttpRequest {
 
-    public static String get(String source) {
+    public static String getSourceCode(String source) {
 
-        HttpResponse<String> response = null;
+        StringBuffer content = new StringBuffer();
 
         try {
 
-            HttpClient client = HttpClient.newHttpClient();
+            URL url = new URL(source);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(URI.create(source))
-                    .GET()
-                    .build();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:63.0) Gecko/20100101 Firefox/63.0");
 
-            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+
+            in.close();
 
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return response.body();
+        return content.toString();
 
     }
 
