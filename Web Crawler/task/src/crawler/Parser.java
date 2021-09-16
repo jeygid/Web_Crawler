@@ -26,18 +26,18 @@ public class Parser {
     public static Map<String, String> getHrefs(String sourceCode) {
 
         Map<String, String> linksMap = new HashMap<>();
-        Pattern hrefPattern = Pattern.compile("href=[\"'](http[s]?)?[\\S]+[\"']");
+        Pattern hrefPattern = Pattern.compile("href=[\"']http[s]?[\\S]+[\"']");
         Matcher hrefMatcher = hrefPattern.matcher(sourceCode);
         String href = "";
 
         while (hrefMatcher.find()) {
 
             href = hrefMatcher.group();
-
+            System.out.println(href);
             href = href.replaceAll("(href=[\"']|[\"']|)", "");
-            String hrefSourceCode = HttpRequest.getSourceCode("http://localhost:25555/" + href);
+            String hrefSourceCode = HttpRequest.getSourceCode(href);
             String title = getTitle(hrefSourceCode);
-            linksMap.put("http://localhost:25555/" + href, title);
+            linksMap.put(href, title);
         }
 
         return linksMap;

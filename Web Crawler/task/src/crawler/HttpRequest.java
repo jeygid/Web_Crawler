@@ -1,42 +1,33 @@
 package crawler;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 
 public class HttpRequest {
 
     public static String getSourceCode(String source) {
 
-        StringBuffer content = new StringBuffer();
+        HttpResponse<String> response = null;
 
         try {
 
-            URL url = new URL(source);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            HttpClient client = HttpClient.newHttpClient();
 
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:63.0) Gecko/20100101 Firefox/63.0");
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(URI.create(source))
+                    .GET()
+                    .build();
 
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-
-            in.close();
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 
-        return content.toString();
+        return response.body();
 
     }
 
