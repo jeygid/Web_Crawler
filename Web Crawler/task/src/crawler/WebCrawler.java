@@ -11,6 +11,17 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/** Осталось:
+
+ 1) Парсинг всех ссылок и разделить обработку между потоками (очередь страниц на обработку)
+ 2) Добавить глубину
+ 3) Добавить лимит времени
+ 4) Добавить всех спарсенных страниц
+ 5) Проверить весь функционал, отрефакторить явные дикости в коде
+
+ */
+
 public class WebCrawler extends JFrame {
 
     public static DefaultTableModel model = new DefaultTableModel();
@@ -32,10 +43,13 @@ public class WebCrawler extends JFrame {
     private JCheckBox timeLimitCheckbox;
 
     private JLabel elapsedTime;
-    private JLabel elapsedTimeCounter;
+    public static JLabel elapsedTimeCounter;
 
     private JLabel parsedPages;
     public static JLabel parsedPagesCounter;
+
+    private JLabel parsingState;
+    public static JLabel parsingStateText;
 
     private JTable table;
     private JScrollPane scrollTable;
@@ -75,49 +89,24 @@ public class WebCrawler extends JFrame {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
 
+                Workers worker = new Workers();
 
-                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-                    @Override
-                    protected Void doInBackground() throws Exception {
+                int count = 1;
 
-                        int i = 0;
-
-                        while (true) {
-
-                            elapsedTimeCounter.setText(String.valueOf(i));
-                            i++;
-
-                            try {
-                                Thread.sleep(1000L);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                    }
-                };
-
-                worker.execute();
-
-
-
-
-                for (int i = 0; i <= Integer.MAX_VALUE; i++) {
-                    System.out.println("Test" + i);
+                if (!workersTextField.getText().equals("")) {
+                    count = Integer.parseInt(workersTextField.getText());
                 }
 
+                worker.execute(urlTextField.getText(), count);
+                runButton.setSelected(false);
 
-
-              //  timerStop();
-
-//                model.setRowCount(0);
+                model.setRowCount(0);
 //
 //                String sourceUrl = urlTextField.getText();
-//                Workers workers = new Workers();
 //
 //
 //
-//                workers.execute(sourceUrl, 1);
+//
 
 
 
@@ -173,6 +162,7 @@ public class WebCrawler extends JFrame {
         depthCheckbox.setText("Enabled");
         add(depthCheckbox);
         depthCheckbox.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (depthTextField.isEnabled()) {
@@ -182,7 +172,6 @@ public class WebCrawler extends JFrame {
                 }
             }
         });
-
 
         timeLimit = new JLabel();
         timeLimit.setBounds(20, 110, 130, 20);
@@ -203,6 +192,7 @@ public class WebCrawler extends JFrame {
         timeLimitCheckbox.setText("Enabled");
         add(timeLimitCheckbox);
         timeLimitCheckbox.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (timeLimitTextField.isEnabled()) {
@@ -212,7 +202,6 @@ public class WebCrawler extends JFrame {
                 }
             }
         });
-
 
         elapsedTime = new JLabel();
         elapsedTime.setBounds(20, 140, 130, 20);
@@ -240,8 +229,21 @@ public class WebCrawler extends JFrame {
         add(parsedPagesCounter);
 
 
+        parsingState = new JLabel();
+        parsingState.setBounds(20, 200, 130, 20);
+        parsingState.setName("ParsingState");
+        parsingState.setText("Parsing state:");
+        add(parsingState);
+
+        parsingStateText = new JLabel();
+        parsingStateText.setBounds(160, 200, 150, 20);
+        parsingStateText.setName("ParsingStateText");
+        parsingStateText.setText("Waiting to run");
+        add(parsingStateText);
+
+
         table = new JTable();
-        table.setBounds(20, 200, 740, 400);
+        table.setBounds(20, 230, 740, 350);
         table.setName("TitlesTable");
         table.setEnabled(false);
         //table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -249,7 +251,7 @@ public class WebCrawler extends JFrame {
         add(table);
 
         scrollTable = new JScrollPane(table);
-        scrollTable.setBounds(20, 200, 740, 400);
+        scrollTable.setBounds(20, 230, 740, 350);
         scrollTable.setVisible(true);
         scrollTable.setPreferredSize(new Dimension());
         add(scrollTable);
@@ -260,12 +262,12 @@ public class WebCrawler extends JFrame {
 
 
         exportText = new JTextField();
-        exportText.setBounds(20, 620, 650, 20);
+        exportText.setBounds(20, 610, 650, 20);
         exportText.setName("ExportUrlTextField");
         add(exportText);
 
         exportButton = new JButton();
-        exportButton.setBounds(680, 620, 80, 20);
+        exportButton.setBounds(680, 610, 80, 20);
         exportButton.setText("Export");
         exportButton.setName("ExportButton");
         exportButton.addActionListener(new ActionListener() {
@@ -299,26 +301,9 @@ public class WebCrawler extends JFrame {
         setVisible(true);
 
 
-        timer = new Timer(1000, null);
-
-        timer.addActionListener(new ActionListener() {
-            int count = 1;
-
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-
 
 
     }
 
-    public static void timerStart() {
-        timer.start();
-    }
-
-    public static void timerStop() {
-        timer.stop();
-    }
 
 }
