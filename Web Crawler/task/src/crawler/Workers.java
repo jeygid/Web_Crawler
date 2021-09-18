@@ -98,7 +98,6 @@ public class Workers {
 
 }
 
-
 class Bot extends SwingWorker<Void, Void> {
 
     int id;
