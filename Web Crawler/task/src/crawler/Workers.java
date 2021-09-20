@@ -122,6 +122,7 @@ class Bot extends SwingWorker<Void, Void> {
                 WebCrawler.model.addRow(new String[]{(String) entry.getKey(), (String) entry.getValue()});
             }
         }
+        
 
         return null;
 
