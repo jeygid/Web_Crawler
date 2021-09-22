@@ -1,15 +1,14 @@
 package crawler;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static crawler.WebCrawler.parsingStateText;
 import static crawler.Workers.URL;
 
 public class Workers {
+
+    //static ConcurrentHashMap<String, Boolean> linksMap = new ConcurrentHashMap<>();
 
     static List<SwingWorker> workersList = new ArrayList<>();
 
@@ -58,11 +57,12 @@ public class Workers {
             thisBot.execute();
         }
 
-        SwingWorker<Void, Void> checkThreads = new SwingWorker<Void, Void>() {
+
+
+        SwingWorker<Void, Void> checkThreads = new SwingWorker<>() {
 
             @Override
             protected Void doInBackground() throws Exception {
-
 
                 while (true) {
 
@@ -70,7 +70,6 @@ public class Workers {
 
                     for (SwingWorker bot: workersList) {
                         if (bot.getState().toString().equals("DONE")) i++;
-                        System.out.println(i);
                     }
 
                     if (i == workersList.size()) {
@@ -88,10 +87,6 @@ public class Workers {
         };
 
         checkThreads.execute();
-
-
-
-
 
 
     }
@@ -115,6 +110,8 @@ class Bot extends SwingWorker<Void, Void> {
         Workers.linksMap = Parser.getHrefs(sourceCode);
 
         Workers.linksMap.put(URL, sourceTitle);
+        WebCrawler.parsedPagesCounter.setText(String.valueOf(Integer.parseInt(WebCrawler.parsedPagesCounter.getText()) + 1));
+
 
         for (Map.Entry entry : Workers.linksMap.entrySet()) {
             String val = (String) entry.getKey();
@@ -122,7 +119,6 @@ class Bot extends SwingWorker<Void, Void> {
                 WebCrawler.model.addRow(new String[]{(String) entry.getKey(), (String) entry.getValue()});
             }
         }
-        
 
         return null;
 

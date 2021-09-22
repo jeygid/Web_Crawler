@@ -38,6 +38,7 @@ public class Parser {
             String hrefSourceCode = HttpRequest.getSourceCode(href);
             String title = getTitle(hrefSourceCode);
             linksMap.put(href, title);
+            WebCrawler.parsedPagesCounter.setText(String.valueOf(Integer.parseInt(WebCrawler.parsedPagesCounter.getText()) + 1));
         }
 
         return linksMap;

@@ -93,6 +93,8 @@ public class WebCrawler extends JFrame {
 
                 int count = 1;
 
+                WebCrawler.parsedPagesCounter.setText("0");
+
                 if (!workersTextField.getText().equals("")) {
                     count = Integer.parseInt(workersTextField.getText());
                 }
@@ -107,8 +109,6 @@ public class WebCrawler extends JFrame {
 //
 //
 //
-
-
 
 //
 //                String sourceUrl = urlTextField.getText();
