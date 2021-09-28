@@ -103,12 +103,9 @@ public class WebCrawler extends JFrame {
                 runButton.setSelected(false);
 
                 model.setRowCount(0);
-//
+
 //                String sourceUrl = urlTextField.getText();
-//
-//
-//
-//
+
 
 //
 //                String sourceUrl = urlTextField.getText();
