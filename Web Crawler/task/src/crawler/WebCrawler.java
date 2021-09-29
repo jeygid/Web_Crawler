@@ -90,7 +90,6 @@ public class WebCrawler extends JFrame {
             public void actionPerformed(ActionEvent actionEvent) {
 
                 Workers worker = new Workers();
-
                 int count = 1;
 
                 WebCrawler.parsedPagesCounter.setText("0");
@@ -100,6 +99,7 @@ public class WebCrawler extends JFrame {
                 }
 
                 worker.execute(urlTextField.getText(), count);
+
                 runButton.setSelected(false);
 
                 model.setRowCount(0);
@@ -112,7 +112,7 @@ public class WebCrawler extends JFrame {
 //                String sourceCode = HttpRequest.getSourceCode(sourceUrl);
 //                String sourceTitle = Parser.getTitle(sourceCode);
 //
-//                linksMap = Parser.getHrefs(sourceCode);
+//                linksMap = Parser.getHrefsAndTitles(sourceCode);
 //
 //                linksMap.put(sourceUrl, sourceTitle);
 //
