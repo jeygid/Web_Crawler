@@ -1,8 +1,6 @@
 package crawler;
 
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,7 +38,6 @@ public class Parser {
             href = hrefMatcher.group();
             System.out.println(href);
             href = href.replaceAll("(href=[\"']|[\"']|)", "");
-            String hrefSourceCode = HttpRequest.getSourceCode(href);
             links.add(href);
             WebCrawler.parsedPagesCounter.setText(String.valueOf(Integer.parseInt(WebCrawler.parsedPagesCounter.getText()) + 1));
 
@@ -50,21 +47,31 @@ public class Parser {
 
     }
 
-    public static Map<String, String> getDeepHrefsAndTitles(String basicTitle, int depth) {
+    public static ArrayList<String> getDeepHrefsAndTitles(String basicTitle, int depth) {
 
         if (depth < 2) return null;
 
-        ArrayList<String> result = new ArrayList<>();
-
         ArrayList<String> links = getHrefs(basicTitle);
+
+        ArrayList<String> result = new ArrayList<>(links);
+
+        ArrayList<String> intermediateLinks = new ArrayList<>();
 
         for (int i = 1; i < depth; i++) {
 
+            for (String link : links) {
+                ArrayList<String> newLinks = getHrefs(link);
+                intermediateLinks.addAll(newLinks);
+            }
 
+            result.addAll(intermediateLinks);
+            links = new ArrayList<>(intermediateLinks);
+
+            System.out.println(result);
 
         }
 
-        return null;
+        return result;
     }
 
 }

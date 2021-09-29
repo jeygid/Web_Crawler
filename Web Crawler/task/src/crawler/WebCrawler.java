@@ -98,6 +98,7 @@ public class WebCrawler extends JFrame {
                     count = Integer.parseInt(workersTextField.getText());
                 }
 
+                System.out.println(urlTextField.getText());
                 worker.execute(urlTextField.getText(), count);
 
                 runButton.setSelected(false);
