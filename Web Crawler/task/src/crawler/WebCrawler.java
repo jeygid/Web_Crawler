@@ -11,17 +11,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-
-/** Осталось:
-
- 1) Парсинг всех ссылок и разделить обработку между потоками (очередь страниц на обработку)
- 2) Добавить глубину
- 3) Добавить лимит времени
- 4) Добавить всех спарсенных страниц
- 5) Проверить весь функционал, отрефакторить явные дикости в коде
-
- */
-
 public class WebCrawler extends JFrame {
 
     public static DefaultTableModel model = new DefaultTableModel();
@@ -38,10 +27,6 @@ public class WebCrawler extends JFrame {
     private JTextField depthTextField;
     private JCheckBox depthCheckbox;
 
-    private JLabel timeLimit;
-    private JTextField timeLimitTextField;
-    private JCheckBox timeLimitCheckbox;
-
     private JLabel elapsedTime;
     public static JLabel elapsedTimeCounter;
 
@@ -51,7 +36,7 @@ public class WebCrawler extends JFrame {
     private JLabel parsingState;
     public static JLabel parsingStateText;
 
-    private JTable table;
+    public static JTable table;
     private JScrollPane scrollTable;
 
     private JTextField exportText;
@@ -89,42 +74,22 @@ public class WebCrawler extends JFrame {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
 
-                Workers worker = new Workers();
                 int count = 1;
+                int depth = 1;
 
-                WebCrawler.parsedPagesCounter.setText("0");
-
-                if (!workersTextField.getText().equals("")) {
+                if (!workersTextField.getText().matches("")) {
                     count = Integer.parseInt(workersTextField.getText());
                 }
 
-                System.out.println(urlTextField.getText());
-                worker.execute(urlTextField.getText(), count);
+                if (!depthTextField.getText().matches("")) {
+                    depth = Integer.parseInt(depthTextField.getText());
+                }
+
+                Workers worker = new Workers();
+                worker.execute(urlTextField.getText(), count, depth);
 
                 runButton.setSelected(false);
-
                 model.setRowCount(0);
-
-//                String sourceUrl = urlTextField.getText();
-
-
-//
-//                String sourceUrl = urlTextField.getText();
-//                String sourceCode = HttpRequest.getSourceCode(sourceUrl);
-//                String sourceTitle = Parser.getTitle(sourceCode);
-//
-//                linksMap = Parser.getHrefsAndTitles(sourceCode);
-//
-//                linksMap.put(sourceUrl, sourceTitle);
-//
-//                for (Map.Entry entry : linksMap.entrySet()) {
-//                    String val = (String) entry.getKey();
-//                    if (!val.contains("unavailablePage")) {
-//                        model.addRow(new String[]{(String) entry.getKey(), (String) entry.getValue()});
-//                    }
-//                }
-
-                //table.setEnabled(true);
 
             }
         });
@@ -157,6 +122,7 @@ public class WebCrawler extends JFrame {
         depthCheckbox.setBounds(690, 80, 150, 20);
         depthCheckbox.setName("DepthCheckBox");
         depthCheckbox.setSelected(true);
+
         depthCheckbox.setText("Enabled");
         add(depthCheckbox);
         depthCheckbox.addActionListener(new ActionListener() {
@@ -165,83 +131,55 @@ public class WebCrawler extends JFrame {
             public void actionPerformed(ActionEvent actionEvent) {
                 if (depthTextField.isEnabled()) {
                     depthTextField.setEnabled(false);
+                    depthTextField.setText("");
                 } else {
                     depthTextField.setEnabled(true);
                 }
             }
         });
 
-        timeLimit = new JLabel();
-        timeLimit.setBounds(20, 110, 130, 20);
-        timeLimit.setName("TimeLimit");
-        timeLimit.setText("Time limit (sec):");
-        add(timeLimit);
-
-        timeLimitTextField = new JTextField();
-        timeLimitTextField.setBounds(160, 110, 500, 20);
-        timeLimitTextField.setName("timelimit");
-        timeLimitTextField.setEnabled(true);
-        add(timeLimitTextField);
-
-        timeLimitCheckbox = new JCheckBox();
-        timeLimitCheckbox.setBounds(690, 110, 150, 20);
-        timeLimitCheckbox.setName("timeLimitCheckbox");
-        timeLimitCheckbox.setSelected(true);
-        timeLimitCheckbox.setText("Enabled");
-        add(timeLimitCheckbox);
-        timeLimitCheckbox.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                if (timeLimitTextField.isEnabled()) {
-                    timeLimitTextField.setEnabled(false);
-                } else {
-                    timeLimitTextField.setEnabled(true);
-                }
-            }
-        });
 
         elapsedTime = new JLabel();
-        elapsedTime.setBounds(20, 140, 130, 20);
+        elapsedTime.setBounds(20, 110, 130, 20);
         elapsedTime.setName("ElapsedTime");
         elapsedTime.setText("Elapsed time (sec) :");
         add(elapsedTime);
 
         elapsedTimeCounter = new JLabel();
-        elapsedTimeCounter.setBounds(160, 140, 150, 20);
+        elapsedTimeCounter.setBounds(160, 110, 150, 20);
         elapsedTimeCounter.setName("ElapsedTimeCounter");
         elapsedTimeCounter.setText("0");
         add(elapsedTimeCounter);
 
 
         parsedPages = new JLabel();
-        parsedPages.setBounds(20, 170, 130, 20);
-        parsedPages.setName("ParsedLabel");
+        parsedPages.setBounds(20, 140, 130, 20);
+        parsedPages.setName("ParsedPagesLabel");
         parsedPages.setText("Parsed pages:");
         add(parsedPages);
 
         parsedPagesCounter = new JLabel();
-        parsedPagesCounter.setBounds(160, 170, 150, 20);
-        parsedPagesCounter.setName("ParsedPagesCounter");
+        parsedPagesCounter.setBounds(160, 140, 150, 20);
+        parsedPagesCounter.setName("ParsedLabel");
         parsedPagesCounter.setText("0");
         add(parsedPagesCounter);
 
 
         parsingState = new JLabel();
-        parsingState.setBounds(20, 200, 130, 20);
+        parsingState.setBounds(20, 170, 130, 20);
         parsingState.setName("ParsingState");
         parsingState.setText("Parsing state:");
         add(parsingState);
 
         parsingStateText = new JLabel();
-        parsingStateText.setBounds(160, 200, 150, 20);
+        parsingStateText.setBounds(160, 170, 150, 20);
         parsingStateText.setName("ParsingStateText");
         parsingStateText.setText("Waiting to run");
         add(parsingStateText);
 
 
         table = new JTable();
-        table.setBounds(20, 230, 740, 350);
+        table.setBounds(20, 200, 740, 390);
         table.setName("TitlesTable");
         table.setEnabled(false);
         //table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -249,7 +187,7 @@ public class WebCrawler extends JFrame {
         add(table);
 
         scrollTable = new JScrollPane(table);
-        scrollTable.setBounds(20, 230, 740, 350);
+        scrollTable.setBounds(20, 200, 740, 390);
         scrollTable.setVisible(true);
         scrollTable.setPreferredSize(new Dimension());
         add(scrollTable);
@@ -275,17 +213,16 @@ public class WebCrawler extends JFrame {
 
                 File file = new File(exportText.getText());
 
-
                 try (FileWriter fileWriter = new FileWriter(file)) {
 
-                    for (Map.Entry entry : linksMap.entrySet()) {
+                    for (Map.Entry entry : Workers.linksMap.entrySet()) {
 
-                        String val = (String) entry.getKey();
-                        if (!val.contains("unavailablePage")) {
-                            fileWriter.write(entry.getKey() + "\n" + entry.getValue() + "\n");
-                            fileWriter.flush();
-                        }
+                            fileWriter.write("Link: " + entry.getKey()
+                                    + "\n" + "Title: " + entry.getValue() + "\n");
+
                     }
+
+                    fileWriter.flush();
 
                 } catch (IOException e) {
 
@@ -297,8 +234,6 @@ public class WebCrawler extends JFrame {
         add(exportButton);
 
         setVisible(true);
-
-
 
 
     }
